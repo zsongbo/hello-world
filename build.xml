@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!--
+ *          DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+ * Everyone is permitted to copy and distribute verbatim or modified
+ * copies of this license document, and changing it is allowed as long
+ * as the name is changed. You just DO WHAT THE FUCK YOU WANT TO.
+ *                http://www.wtfpl.net/txt/copying/
+ */
+ -->
+
+<project basedir="." default="package" name="bloomfilter">
+    <property environment="env"/>
+
+    <!-- names (you man modify them for your project) -->
+    <property name="version" value="1.0.0"/>
+    <property name="subname" value="simple"/>
+    <property name="final.name" value="${ant.project.name}-${subname}-${version}"/>
+  
+    <!-- javac options -->
+    <property name="javac.version" value="1.6"/>
+    <property name="javac.source" value="${javac.version}"/>
+    <property name="javac.target" value="${javac.version}"/>
+    <property name="javac.deprecation" value="off"/>
+    <property name="javac.nowarn" value="off"/>
+    <property name="javac.debug" value="off"/>
+    <property name="javac.debuglevel" value="source,lines,vars"/>
+    <property name="javac.optimize" value="on"/>
+    <property name="javac.args" value=""/>
+    <property name="javac.args.warnings" value="-Xlint:unchecked"/>
+    
+    <!-- jar options -->
+    <property name="jar.index" value="on"/>
+
+    <!-- dir locations -->
+    <property name="src.dir" value="${basedir}/src/java"/>
+    <property name="test.dir" value="${basedir}/src/test"/>
+    <property name="lib.dir" value="${basedir}/lib"/>
+
+    <property name="build.dir" value="${basedir}/build"/>
+    <property name="build.classes.dir" value="${build.dir}/classes"/>
+    <property name="build.javadoc.dir" value="${build.dir}/javadoc"/>
+    <property name="build.dist.dir" value="${build.dir}/dist"/>
+	
+    <!-- classpath -->
+    <path id="bloom-classpath">
+        <pathelement location="${build.classes.dir}"/>
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <!-- TARGET init -->
+    <target name="init">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <mkdir dir="${build.dir}"/>
+    </target>
+    
+    <!-- TARGET clean -->
+    <target name="clean">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <delete dir="${build.classes.dir}"/>
+        <delete dir="${build.javadoc.dir}"/>
+        <delete dir="${build.dist.dir}"/>
+        <delete dir="${basedir}" includes="TEST*-*.xml" quiet="true"/>
+        <delete dir="${basedir}" includes="*-test-report.html" quiet="true"/>
+    </target>
+ 
+    <!-- TARGET cleanall -->
+    <target name="cleanall" depends="clean">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <delete dir="${build.dir}"/>
+        <delete file="${basedir}/${final.name}.jar"/>
+    </target>
+
+    <!--
+     ~ ************************************************************************
+     ~ Compile java class files.
+     ~ ************************************************************************
+     -->
+	
+    <!-- TARGET compile -->
+    <target name="compile" depends="init" >
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <mkdir dir="${build.classes.dir}"/>
+        <javac source="${javac.source}" target="${javac.target}"
+               debug="${javac.debug}" debuglevel="${javac.debuglevel}"                
+               optimize="${javac.optimize}"
+               deprecation="${javac.deprecation}"
+               nowarn="${javac.nowarn}"
+               srcdir="${src.dir}:${test.dir}"
+               destdir="${build.classes.dir}">
+            <compilerarg line="${javac.args} ${javac.args.warnings}"/>
+            <classpath refid="bloom-classpath"/>
+        </javac>
+    </target>
+
+
+    <!--
+     ~ ************************************************************************
+     ~ Make jar file.
+     ~ ************************************************************************
+     -->
+     
+    <!-- TARGET package -->
+    <target name="package" depends="compile">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <jar jarfile="${build.dir}/${final.name}.jar" index="${jar.index}">
+            <fileset dir="${build.classes.dir}"/>
+        </jar>
+
+        <copy todir="${basedir}">
+          <fileset file="${build.dir}/${final.name}.jar"/>
+        </copy>
+    </target>
+    
+    
+    <!--
+     ~ ************************************************************************
+     ~ Java Documentation
+     ~ ************************************************************************
+     -->
+    <target name="javadoc" depends="init">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <mkdir dir="${build.javadoc.dir}"/>
+        <tstamp>
+            <format property="YEAR" pattern="yyyy"/>
+        </tstamp>
+        <javadoc destdir="${build.javadoc.dir}" author="true" version="true" use="true"
+                 windowtitle="${ant.project.name} ${subname} API" classpathref="bloom-classpath"
+                 bottom="Copyright &amp;copy; ${YEAR}, License: DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE!">
+            <fileset dir="${src.dir}" defaultexcludes="yes">
+                <include name="**/*.java"/>
+            </fileset>
+        </javadoc>
+    </target>
+
+
+    <!--
+     ~ ************************************************************************
+     ~ Unit Test with JUnit
+     ~ ************************************************************************
+     -->
+    <macrodef name="test-report">
+        <attribute name="name"/>
+        <sequential>
+            <junitreport>
+                <fileset dir="." includes="TEST-*.xml"/>
+                <report format="noframes" styledir="${ant.home}/etc"/>
+            </junitreport>
+            <delete dir="${basedir}" includes="TEST*-*.xml" quiet="true"/>
+            <move file="junit-noframes.html" tofile="@{name}.html"/>
+        </sequential>
+    </macrodef>
+
+    <target name="unittest" depends="compile">
+        <junit fork="yes" forkmode="once" dir="${test.dir}" showoutput="true" printsummary="true">
+            <classpath refid="bloom-classpath"/>
+            <classpath location="${build.classes.dir}"/>
+            <batchtest>
+                <fileset dir="${build.classes.dir}">
+                    <include name="**/*Test.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml"/>
+        </junit>
+        <!--test-report name="bloom-test-report"/-->
+    </target>
+
+</project>
