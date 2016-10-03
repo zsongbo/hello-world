@@ -123,7 +123,7 @@ public class SimpleBloomFilter<T> implements BloomFilter<T> {
         long tmpBitSize = SimpleBloomFilter.calcBitSize(this.nElemNum, this.errorRate);
         this.mBitSize   = (tmpBitSize <= MAX_BIT_SIZE) ? tmpBitSize : MAX_BIT_SIZE;
 
-        long tmpHashNum = SimpleBloomFilter.calcHashNum(this.nElemNum, this.mBitSize);
+        int tmpHashNum = SimpleBloomFilter.calcHashNum(this.nElemNum, this.mBitSize);
         this.kHashNum  = (tmpHashNum <= MAX_HASH_NUM) ? tmpHashNum : MAX_HASH_NUM;
 
         initBitWords(this.mBitSize);
@@ -139,8 +139,6 @@ public class SimpleBloomFilter<T> implements BloomFilter<T> {
      */
     public SimpleBloomFilter(double errorRate, long bitSize)
             throws IllegalArgumentException {
-        long tmpElemNum;
-        int  tmpHashNum;
 
         /* Sanity check of the arguments. */
         if ((errorRate < 0.00000000001) || (errorRate > 1.0)) {
@@ -159,10 +157,10 @@ public class SimpleBloomFilter<T> implements BloomFilter<T> {
          * may calculate to get a zero, which would cause exception in later calculation.
          * here we avoid it be zero.
          */
-        tmpElemNum = SimpleBloomFilter.calcElemNum(this.mBitSize, this.errorRate);
+        long tmpElemNum = SimpleBloomFilter.calcElemNum(this.mBitSize, this.errorRate);
         this.nElemNum   = (tmpElemNum > 0) ? tmpElemNum : 1;
 
-        tmpHashNum = SimpleBloomFilter.calcHashNum(this.nElemNum, this.mBitSize);
+        int tmpHashNum = SimpleBloomFilter.calcHashNum(this.nElemNum, this.mBitSize);
         this.kHashNum  = (tmpHashNum <= MAX_HASH_NUM) ? tmpHashNum : MAX_HASH_NUM;
 
         initBitWords(this.mBitSize);
