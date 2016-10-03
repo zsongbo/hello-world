@@ -104,9 +104,6 @@ public class SimpleBloomFilter<T> implements BloomFilter<T> {
      */
     public SimpleBloomFilter(long elemNum, double errorRate)
             throws IllegalArgumentException {
-        long tmpBitSize;
-        int  tmpHashNum;
-
         /* Sanity check of the arguments. */
         if (elemNum <= 0) {
             throw new IllegalArgumentException("Invalid maximum number of elements: " + elemNum);
@@ -123,10 +120,10 @@ public class SimpleBloomFilter<T> implements BloomFilter<T> {
          * when given a very little errorRate, may get a very large bitSize, here we avoid it be too large,
          * but it still may larger than the available heap in JVM, and result in OOME.
          */
-        tmpBitSize = SimpleBloomFilter.calcBitSize(this.nElemNum, this.errorRate);
+        long tmpBitSize = SimpleBloomFilter.calcBitSize(this.nElemNum, this.errorRate);
         this.mBitSize   = (tmpBitSize <= MAX_BIT_SIZE) ? tmpBitSize : MAX_BIT_SIZE;
 
-        tmpHashNum = SimpleBloomFilter.calcHashNum(this.nElemNum, this.mBitSize);
+        long tmpHashNum = SimpleBloomFilter.calcHashNum(this.nElemNum, this.mBitSize);
         this.kHashNum  = (tmpHashNum <= MAX_HASH_NUM) ? tmpHashNum : MAX_HASH_NUM;
 
         initBitWords(this.mBitSize);
